@@ -1,17 +1,108 @@
 {
-  "updated_at": "2026-06-12T11:50:00-03:00",
-  "fetched_on": null,
-  "attempted_on": null,
-  "source": null,
+  "updated_at": "Wed, 17 Jun 2026 13:00:02 +0000",
+  "fetched_on": "2026-06-17",
+  "source": "ExchangeRate-API standard endpoint (BRL)",
   "base_currency": "BRL",
-  "brl_rate": 1,
+  "brl_rate": 1.0,
   "rates": [
-    {"code": "USD", "name": "Dólar (USD)", "base_rate": 0.1872, "spread": 0.02, "rate": 5.45, "brl_per_unit": 5.45},
-    {"code": "EUR", "name": "Euro (EUR)", "base_rate": 0.1620, "spread": 0.03, "rate": 6.35, "brl_per_unit": 6.35},
-    {"code": "GBP", "name": "Libra (GBP)", "base_rate": 0.1397, "spread": 0.03, "rate": 7.37, "brl_per_unit": 7.37},
-    {"code": "AED", "name": "Dirham (AED)", "base_rate": 0.6877, "spread": 0.02, "rate": 1.49, "brl_per_unit": 1.49},
-    {"code": "ZAR", "name": "Rand (ZAR)", "base_rate": 3.1250, "spread": 0.05, "rate": 0.34, "brl_per_unit": 0.34}
+    {
+      "code": "USD",
+      "name": "Dólar Americano (USD)",
+      "base_rate": 0.2,
+      "spread": 0.03,
+      "rate": 5.15,
+      "brl_per_unit": 5.15
+    },
+    {
+      "code": "EUR",
+      "name": "Euro (EUR)",
+      "base_rate": 0.17,
+      "spread": 0.03,
+      "rate": 6.06,
+      "brl_per_unit": 6.06
+    },
+    {
+      "code": "GBP",
+      "name": "Libra Esterlina (GBP)",
+      "base_rate": 0.15,
+      "spread": 0.03,
+      "rate": 6.87,
+      "brl_per_unit": 6.87
+    },
+    {
+      "code": "JPY",
+      "name": "Iene Japonês (JPY)",
+      "base_rate": 31.5,
+      "spread": 0.03,
+      "rate": 0.03,
+      "brl_per_unit": 0.03
+    },
+    {
+      "code": "CNY",
+      "name": "Yuan Chinês (CNY)",
+      "base_rate": 1.33,
+      "spread": 0.03,
+      "rate": 0.77,
+      "brl_per_unit": 0.77
+    },
+    {
+      "code": "AUD",
+      "name": "Dólar Australiano (AUD)",
+      "base_rate": 0.28,
+      "spread": 0.03,
+      "rate": 3.68,
+      "brl_per_unit": 3.68
+    },
+    {
+      "code": "CAD",
+      "name": "Dólar Canadense (CAD)",
+      "base_rate": 0.28,
+      "spread": 0.03,
+      "rate": 3.68,
+      "brl_per_unit": 3.68
+    },
+    {
+      "code": "CHF",
+      "name": "Franco Suíço (CHF)",
+      "base_rate": 0.16,
+      "spread": 0.03,
+      "rate": 6.44,
+      "brl_per_unit": 6.44
+    },
+    {
+      "code": "HKD",
+      "name": "Dólar de Hong Kong (HKD)",
+      "base_rate": 1.54,
+      "spread": 0.03,
+      "rate": 0.67,
+      "brl_per_unit": 0.67
+    },
+    {
+      "code": "SGD",
+      "name": "Dólar de Singapura (SGD)",
+      "base_rate": 0.25,
+      "spread": 0.03,
+      "rate": 4.12,
+      "brl_per_unit": 4.12
+    },
+    {
+      "code": "AED",
+      "name": "Dirham Árabe (AED)",
+      "base_rate": 0.72,
+      "spread": 0.03,
+      "rate": 1.43,
+      "brl_per_unit": 1.43
+    },
+    {
+      "code": "ZAR",
+      "name": "Rand Sul-africano (ZAR)",
+      "base_rate": 3.18,
+      "spread": 0.03,
+      "rate": 0.32,
+      "brl_per_unit": 0.32
+    }
   ],
   "error": null,
-  "spread_applied": true
+  "spread_applied": true,
+  "attempted_on": "2026-06-17"
 }
