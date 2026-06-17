@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Câmbio Klas</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+    background: #e8eef5;
+    color: #1a3550;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 32px 16px 48px;
+  }
+
+  .page {
+    width: min(480px, 100%);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.09);
+  }
+
+  /* ── HEADER ─────────────────────────── */
+  .card-header {
+    background: #1a3550;
+    color: #fff;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header-icon {
+    font-size: 1rem;
+    font-weight: 800;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 7px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .header-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  /* ── TABLE HEADER ────────────────────── */
+  .table-head {
+    background: #dde8f3;
+    display: flex;
+    justify-content: space-between;
+    padding: 9px 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    color: #4a6a8a;
+    text-transform: uppercase;
+  }
+
+  /* ── CURRENCY ROWS ───────────────────── */
+  .currency-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid #edf0f4;
+    cursor: pointer;
+    transition: background 0.1s;
+    user-select: none;
+  }
+
+  .currency-row:last-child {
+    border-bottom: none;
+  }
+
+  .currency-row:hover {
+    background: #f5f8fc;
+  }
+
+  .currency-row.selected {
+    background: #edf4fb;
+  }
+
+  .currency-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .badge {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    padding: 3px 7px;
+    border-radius: 5px;
+    color: #fff;
+    flex-shrink: 0;
+    min-width: 36px;
+    text-align: center;
+  }
+
+  .badge-usd { background: #4f46e5; }
+  .badge-eur { background: #7c3aed; }
+  .badge-gbp { background: #db2777; }
+  .badge-jpy { background: #e11d48; }
+  .badge-cny { background: #ea580c; }
+  .badge-aud { background: #0891b2; }
+  .badge-cad { background: #dc2626; }
+  .badge-chf { background: #64748b; }
+  .badge-hkd { background: #0d9488; }
+  .badge-sgd { background: #8b5cf6; }
+  .badge-aed { background: #16a34a; }
+  .badge-zar { background: #d97706; }
+
+  .currency-name {
+    font-size: 0.97rem;
+    color: #1a3550;
+  }
+
+  .currency-name strong {
+    font-weight: 700;
+  }
+
+  .currency-name span {
+    font-weight: 400;
+    color: #5a7590;
+  }
+
+  .currency-rate {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a3550;
+    white-space: nowrap;
+  }
+
+  /* ── FOOTER ──────────────────────────── */
+  .card-footer {
+    background: #f4f7fb;
+    border-top: 1px solid #e4eaf2;
+    padding: 10px 20px;
+    font-size: 0.8rem;
+    color: #6b85a0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .footer-icon {
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  /* ── CONVERTER CARD ──────────────────── */
+  .conv-header {
+    padding: 13px 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    color: #4a6a8a;
+    text-transform: uppercase;
+    border-bottom: 1px solid #edf0f4;
+  }
+
+  .conv-select-wrap {
+    padding: 12px 20px 0;
+  }
+
+  .conv-select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #cfd9e6;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 0.95rem;
+    color: #1a3550;
+    background: #fff;
+    cursor: pointer;
+    appearance: auto;
+  }
+
+  .conv-body {
+    padding: 12px 20px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .conv-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #cfd9e6;
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: #fff;
+    flex: 1;
+    min-width: 0;
+    transition: border-color 0.15s;
+  }
+
+  .conv-group:focus-within {
+    border-color: #1a3550;
+  }
+
+  .conv-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #4a6a8a;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .conv-input {
+    border: none;
+    outline: none;
+    font: inherit;
+    font-size: 1rem;
+    color: #1a3550;
+    width: 100%;
+    min-width: 0;
+    background: transparent;
+  }
+
+  .conv-sep {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #9ab0c8;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 400px) {
+    body { padding: 12px 8px 32px; }
+    .currency-row { padding: 12px 14px; }
+    .card-header, .table-head, .card-footer { padding-left: 14px; padding-right: 14px; }
+    .conv-body { padding-left: 14px; padding-right: 14px; }
+    .conv-select-wrap { padding-left: 14px; padding-right: 14px; }
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+
+    <div class="card" id="main-card">
+      <div class="card-header">
+        <span class="header-icon">$</span>
+        <span class="header-title">Câmbio Klas</span>
+      </div>
+
+      <div class="table-head">
+        <span>Moeda</span>
+        <span>Cotação</span>
+      </div>
+
+      <div id="rates-body"></div>
+
+      <div class="card-footer">
+        <span class="footer-icon">⏱</span>
+        <span id="footer-text">Carregando...</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="conv-header">Conversor</div>
+      <div class="conv-select-wrap">
+        <select id="currency-select" class="conv-select" aria-label="Selecionar moeda"></select>
+      </div>
+      <div class="conv-body">
+        <div class="conv-group">
+          <span class="conv-label">R$</span>
+          <input id="calc-brl" class="conv-input" type="text" inputmode="decimal" placeholder="100,00">
+        </div>
+        <span class="conv-sep">=</span>
+        <div class="conv-group">
+          <span class="conv-label" id="calc-code">USD</span>
+          <input id="calc-foreign" class="conv-input" type="text" inputmode="decimal" placeholder="18,32">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const LOCAL_API_URL = "http://127.0.0.1:8000/api/cambio";
+    const GITHUB_CACHE_URL = "./cambio_cache.json";
+    const API_URL = (location.protocol === "file:" || location.hostname === "127.0.0.1" || location.hostname === "localhost")
+      ? LOCAL_API_URL
+      : GITHUB_CACHE_URL;
+
+    const CURRENCY_META = {
+      USD: { bold: "Dólar",  rest: " Americano",      badge: "badge-usd" },
+      EUR: { bold: "Euro",   rest: "",                 badge: "badge-eur" },
+      GBP: { bold: "Libra",  rest: " Esterlina",      badge: "badge-gbp" },
+      JPY: { bold: "Iene",   rest: " Japonês",         badge: "badge-jpy" },
+      CNY: { bold: "Yuan",   rest: " Chinês",          badge: "badge-cny" },
+      AUD: { bold: "Dólar",  rest: " Australiano",    badge: "badge-aud" },
+      CAD: { bold: "Dólar",  rest: " Canadense",      badge: "badge-cad" },
+      CHF: { bold: "Franco", rest: " Suíço",           badge: "badge-chf" },
+      HKD: { bold: "Dólar",  rest: " de Hong Kong",   badge: "badge-hkd" },
+      SGD: { bold: "Dólar",  rest: " de Singapura",   badge: "badge-sgd" },
+      AED: { bold: "Dirham", rest: " Árabe",           badge: "badge-aed" },
+      ZAR: { bold: "Rand",   rest: " Sul-africano",   badge: "badge-zar" },
+    };
+    const displayOrder  = ["USD", "EUR", "GBP", "AED", "ZAR"];
+    const currencyOrder = ["USD", "EUR", "GBP", "JPY", "CNY", "AUD", "CAD", "CHF", "HKD", "SGD", "AED", "ZAR"];
+    let currentPayload = null;
+
+    function formatRate(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return "--";
+      return `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    function formatTimestamp(value) {
+      if (!value) return "indisponível";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return String(value);
+      return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(d);
+    }
+
+    function buildRows() {
+      const body = document.getElementById("rates-body");
+      for (const code of displayOrder) {
+        const meta = CURRENCY_META[code] || { bold: code, rest: "", badge: "" };
+        const row = document.createElement("div");
+        row.className = "currency-row";
+        row.id = `row-${code.toLowerCase()}`;
+        row.innerHTML = `
+          <div class="currency-info">
+            <span class="badge ${meta.badge}">${code}</span>
+            <span class="currency-name"><strong>${meta.bold}</strong><span>${meta.rest}</span></span>
+          </div>
+          <span class="currency-rate" id="rate-${code.toLowerCase()}">--</span>`;
+        row.addEventListener("click", () => {
+          const sel = document.getElementById("currency-select");
+          if (sel) { sel.value = code; sel.dispatchEvent(new Event("change")); }
+        });
+        body.appendChild(row);
+      }
+    }
+
+    function applyRates(payload) {
+      currentPayload = payload;
+      const rates = Array.isArray(payload?.rates) ? payload.rates : [];
+      const byCode = new Map(rates.map((r) => [String(r.code || "").toUpperCase(), r]));
+
+      for (const code of currencyOrder) {
+        const item = byCode.get(code) || {};
+        const node = document.getElementById(`rate-${code.toLowerCase()}`);
+        if (node) node.textContent = formatRate(item.rate);
+      }
+
+      const sel = document.getElementById("currency-select");
+      if (sel && !sel.options.length) {
+        for (const code of currencyOrder) {
+          const meta = CURRENCY_META[code] || {};
+          const opt = document.createElement("option");
+          opt.value = code;
+          opt.textContent = `${meta.bold || code}${meta.rest || ""}`;
+          sel.appendChild(opt);
+        }
+        sel.value = currencyOrder[0];
+        sel.addEventListener("change", renderConverter);
+      }
+
+      const footerText = document.getElementById("footer-text");
+      if (footerText) {
+        footerText.textContent = `Atualizado em ${formatTimestamp(payload?.updated_at)} · Próxima atualização às 11:30 (seg-sex)`;
+      }
+
+      renderConverter();
+    }
+
+    function renderConverter() {
+      const sel = document.getElementById("currency-select");
+      const code = String(sel?.value || currencyOrder[0]).toUpperCase();
+
+      const codeLabel = document.getElementById("calc-code");
+      if (codeLabel) codeLabel.textContent = code;
+
+      for (const row of document.querySelectorAll(".currency-row")) {
+        row.classList.remove("selected");
+      }
+      const activeRow = document.getElementById(`row-${code.toLowerCase()}`);
+      if (activeRow) activeRow.classList.add("selected");
+
+      refreshCalc();
+    }
+
+    // ── CONVERTER ──────────────────────────────────
+    let calcLastEdited = "brl";
+
+    function parseBR(str) {
+      if (!str) return NaN;
+      // Accepts: "1.234,56" or "1234,56" or "1234.56" or "1234"
+      const s = String(str).trim();
+      // If has both . and , assume . is thousands and , is decimal (pt-BR)
+      if (s.includes(".") && s.includes(",")) {
+        return parseFloat(s.replace(/\./g, "").replace(",", "."));
+      }
+      // Only comma: treat as decimal separator
+      if (s.includes(",")) {
+        return parseFloat(s.replace(",", "."));
+      }
+      return parseFloat(s);
+    }
+
+    function formatBR(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return "";
+      return n.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    }
+
+    function getSelectedRate() {
+      if (!currentPayload) return null;
+      const rates = Array.isArray(currentPayload.rates) ? currentPayload.rates : [];
+      const byCode = new Map(rates.map((r) => [String(r.code || "").toUpperCase(), r]));
+      const sel = document.getElementById("currency-select");
+      const code = String(sel?.value || currencyOrder[0]).toUpperCase();
+      return byCode.get(code)?.brl_per_unit ?? null;
+    }
+
+    function refreshCalc() {
+      const brlInput = document.getElementById("calc-brl");
+      const foreignInput = document.getElementById("calc-foreign");
+      const rate = getSelectedRate();
+      if (!rate) return;
+      if (calcLastEdited === "brl") {
+        const val = parseBR(brlInput.value);
+        foreignInput.value = Number.isFinite(val) && val >= 0 ? formatBR(val / rate) : "";
+      } else {
+        const val = parseBR(foreignInput.value);
+        brlInput.value = Number.isFinite(val) && val >= 0 ? formatBR(val * rate) : "";
+      }
+    }
+
+    document.getElementById("calc-brl").addEventListener("input", () => {
+      calcLastEdited = "brl";
+      refreshCalc();
+    });
+    document.getElementById("calc-foreign").addEventListener("input", () => {
+      calcLastEdited = "foreign";
+      refreshCalc();
+    });
+
+    // Format the typed field on blur (e.g. "100" → "100,00"; "1000" → "1.000,00")
+    document.getElementById("calc-brl").addEventListener("blur", (e) => {
+      const val = parseBR(e.target.value);
+      if (Number.isFinite(val) && val >= 0) e.target.value = formatBR(val);
+    });
+    document.getElementById("calc-foreign").addEventListener("blur", (e) => {
+      const val = parseBR(e.target.value);
+      if (Number.isFinite(val) && val >= 0) e.target.value = formatBR(val);
+    });
+
+    // ── INIT ───────────────────────────────────────
+    buildRows();
+
+    async function carregarCambio() {
+      try {
+        const res = await fetch(API_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        applyRates(await res.json());
+      } catch (e) {
+        console.error(e);
+        const footerText = document.getElementById("footer-text");
+        if (footerText) footerText.textContent = "API indisponível. Exibindo valores em cache.";
+      }
+    }
+
+    carregarCambio();
+  </script>
+</body>
+</html>
