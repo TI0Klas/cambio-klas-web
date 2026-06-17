@@ -93,8 +93,11 @@ def _load_spreads() -> dict[str, float]:
 
     spreads: dict[str, float] = {}
     for code in CURRENCIES:
-        value = _to_float(raw.get(code)) if isinstance(raw, dict) else None
-        spreads[code] = 0.0 if value is None else max(value, 0.0)
+        raw_value = raw.get(code) if isinstance(raw, dict) else None
+        try:
+            spreads[code] = max(float(raw_value), 0.0) if raw_value is not None else 0.0
+        except (ValueError, TypeError):
+            spreads[code] = 0.0
     return spreads
 
 
