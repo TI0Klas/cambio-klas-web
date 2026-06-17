@@ -12,6 +12,9 @@ permissions:
 jobs:
   update-cache:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cambio-web
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,7 +25,6 @@ jobs:
           python-version: '3.11'
 
       - name: Update cache from API
-        working-directory: .
         env:
           CAMBIO_API_KEY: ${{ secrets.CAMBIO_API_KEY }}
           CAMBIO_API_AUTH_MODE: ${{ secrets.CAMBIO_API_AUTH_MODE }}
