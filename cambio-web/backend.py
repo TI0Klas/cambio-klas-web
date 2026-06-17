@@ -190,11 +190,18 @@ def _normalize_rates(payload: Any) -> list[dict[str, Any]]:
             code = str(_first_present(item, ["code", "currency", "moeda", "sigla"]) or "").upper()
             if not code:
                 continue
-            rate = _to_float(_first_present(item, ["rate", "valor", "cambio", "value", "buy", "cotacao"]))
+            raw_rate = _first_present(item, ["rate", "valor", "cambio", "value", "buy", "cotacao"])
+            try:
+                rate = float(raw_rate) if raw_rate is not None else None
+            except (ValueError, TypeError):
+                rate = None
             name = _first_present(item, ["name", "label", "nome"]) or DEFAULT_LABELS.get(code, code)
         elif isinstance(item, (list, tuple)) and len(item) >= 2:
             code = str(item[0]).upper()
-            rate = _to_float(item[1])
+            try:
+                rate = float(item[1]) if item[1] is not None else None
+            except (ValueError, TypeError):
+                rate = None
             name = DEFAULT_LABELS.get(code, code)
         else:
             continue
@@ -225,7 +232,10 @@ def _apply_spreads(rates: list[dict[str, Any]], spreads: dict[str, float], brl_r
     adjusted: list[dict[str, Any]] = []
     for item in rates:
         code = item.get("code")
-        api_rate = _to_float(item.get("rate"))
+        try:
+            api_rate = float(item.get("rate")) if item.get("rate") is not None else None
+        except (ValueError, TypeError):
+            api_rate = None
         spread = float(spreads.get(code, 0.0) or 0.0)
 
         # 1. Convert API rate to BRL per unit of foreign currency (full precision)
