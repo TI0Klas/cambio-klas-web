@@ -27,6 +27,7 @@ API_HEADERS_JSON = os.getenv("CAMBIO_API_HEADERS_JSON", "").strip()
 BASE_CURRENCY = os.getenv("CAMBIO_BASE_CURRENCY", "BRL").strip().upper() or "BRL"
 UPDATE_HOUR_2 = int(os.getenv("CAMBIO_UPDATE_HOUR_2", "15"))
 UPDATE_MINUTE_2 = int(os.getenv("CAMBIO_UPDATE_MINUTE_2", "0"))
+DAILY_API_LIMIT = int(os.getenv("CAMBIO_DAILY_LIMIT", "100"))
 
 CURRENCIES = ["USD", "EUR", "GBP", "JPY", "CNY", "AUD", "CAD", "CHF", "HKD", "SGD", "AED", "ZAR"]
 DEFAULT_LABELS = {
@@ -288,12 +289,24 @@ def fetch_remote_rates() -> dict[str, Any]:
 def refresh_cache(force: bool = False) -> dict[str, Any]:
     cached = _load_cache()
     today = _today_key()
-    # Allow retry if previous attempt today returned an error
+
+    # Already succeeded today — skip
     already_ok = cached.get("attempted_on") == today and not cached.get("error")
     if not force and already_ok:
         return cached
 
+    # Daily API call limit
+    call_date = cached.get("call_count_date")
+    daily_calls = int(cached.get("daily_call_count", 0)) if call_date == today else 0
+    if daily_calls >= DAILY_API_LIMIT:
+        cached["error"] = f"limite diário de {DAILY_API_LIMIT} chamadas à API atingido"
+        _save_cache(cached)
+        return cached
+
+    # Register attempt and increment counter before calling API
     cached["attempted_on"] = today
+    cached["call_count_date"] = today
+    cached["daily_call_count"] = daily_calls + 1
     _save_cache(cached)
 
     try:
@@ -305,6 +318,8 @@ def refresh_cache(force: bool = False) -> dict[str, Any]:
         return cached
 
     payload["attempted_on"] = today
+    payload["call_count_date"] = today
+    payload["daily_call_count"] = daily_calls + 1
     _save_cache(payload)
     return payload
 
