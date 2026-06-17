@@ -1,0 +1,55 @@
+name: Update Cambio Cache
+
+on:
+  schedule:
+    - cron: '30 14 * * 1-5'  # 11:30 BRT - primeira tentativa
+    - cron: '35 14 * * 1-5'   # 11:35 BRT - segunda tentativa (retenta se a primeira falhou)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Update cache from API
+        working-directory: .
+        env:
+          CAMBIO_API_KEY: ${{ secrets.CAMBIO_API_KEY }}
+          CAMBIO_API_AUTH_MODE: ${{ secrets.CAMBIO_API_AUTH_MODE }}
+          CAMBIO_BASE_CURRENCY: ${{ secrets.CAMBIO_BASE_CURRENCY }}
+        run: python update_cache.py
+
+      - name: Append to historico.csv
+        run: python append_historico.py
+
+      - name: Commit updated files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          CHANGED=false
+          if ! git diff --quiet -- "cambio_cache.json"; then
+            git add "cambio_cache.json"
+            CHANGED=true
+          fi
+          if ! git diff --quiet -- "historico.csv"; then
+            git add "historico.csv"
+            CHANGED=true
+          fi
+
+          if [ "$CHANGED" = "true" ]; then
+            git commit -m "chore: update cambio cache and historico"
+            git push
+          else
+            echo "No changes to commit."
+          fi
