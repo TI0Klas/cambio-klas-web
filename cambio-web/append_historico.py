@@ -12,7 +12,12 @@ CACHE_PATH = ROOT / "cambio_cache.json"
 HISTORICO_PATH = ROOT / "historico.csv"
 
 CURRENCIES = ["USD", "EUR", "GBP", "JPY", "CNY", "AUD", "CAD", "CHF", "HKD", "SGD", "AED", "ZAR"]
-FIELDNAMES = ["data", "hora"] + [f"{c}_rate" for c in CURRENCIES] + [f"{C}_spread" for C in CURRENCIES]
+FIELDNAMES = (
+    ["data", "hora"]
+    + [f"{c}_mercado" for c in CURRENCIES]
+    + [f"{c}_klas" for c in CURRENCIES]
+    + [f"{c}_spread" for c in CURRENCIES]
+)
 
 
 def main() -> None:
@@ -48,8 +53,9 @@ def main() -> None:
     }
     for code in CURRENCIES:
         r = rates_by_code.get(code, {})
-        row[f"{code}_rate"] = str(r.get("rate") or "")
-        row[f"{code}_spread"] = str(r.get("spread") or "")
+        row[f"{code}_mercado"] = str(r.get("market_brl") or "")
+        row[f"{code}_klas"]    = str(r.get("rate") or "")
+        row[f"{code}_spread"]  = str(r.get("spread") or "")
 
     file_exists = HISTORICO_PATH.exists()
     with HISTORICO_PATH.open("a", newline="", encoding="utf-8") as f:
