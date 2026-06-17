@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import csv
 import json
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
+
+BRT = timezone(timedelta(hours=-3))
 
 ROOT = Path(__file__).resolve().parent
 CACHE_PATH = ROOT / "cambio_cache.json"
@@ -31,8 +33,12 @@ def main() -> None:
 
     try:
         dt = datetime.fromisoformat(updated_at)
+        if dt.tzinfo is not None:
+            dt = dt.astimezone(BRT)
+        else:
+            dt = dt.replace(tzinfo=timezone.utc).astimezone(BRT)
     except ValueError:
-        dt = datetime.now()
+        dt = datetime.now(BRT)
 
     rates_by_code = {r["code"]: r for r in cache.get("rates", [])}
 
