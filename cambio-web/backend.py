@@ -228,14 +228,13 @@ def _apply_spreads(rates: list[dict[str, Any]], spreads: dict[str, float], brl_r
         api_rate = _to_float(item.get("rate"))
         spread = float(spreads.get(code, 0.0) or 0.0)
 
-        # 1. Convert API rate to BRL per unit of foreign currency
-        # api_rate is "foreign currency per 1 base unit" — inverting gives "BRL per 1 foreign unit"
+        # 1. Convert API rate to BRL per unit of foreign currency (full precision)
         market_brl = None
         if brl_rate is not None and api_rate not in {None, 0}:
-            market_brl = round(brl_rate / api_rate, 4)
+            market_brl = brl_rate / api_rate
 
         # 2. Apply spread on top of the BRL price (markup = more BRL per unit)
-        final_brl = None if market_brl is None else round(market_brl * (1 + spread), 2)
+        final_brl = None if market_brl is None else market_brl * (1 + spread)
 
         adjusted.append(
             {
@@ -243,8 +242,9 @@ def _apply_spreads(rates: list[dict[str, Any]], spreads: dict[str, float], brl_r
                 "name": item.get("name", DEFAULT_LABELS.get(code, code)),
                 "base_rate": api_rate,
                 "spread": spread,
-                "rate": final_brl,
-                "brl_per_unit": final_brl,
+                "market_brl": round(market_brl, 6) if market_brl is not None else None,
+                "rate": round(final_brl, 6) if final_brl is not None else None,
+                "brl_per_unit": round(final_brl, 6) if final_brl is not None else None,
             }
         )
     return adjusted
