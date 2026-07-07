@@ -1,6 +1,6 @@
 {
-  "updated_at": "Mon, 06 Jul 2026 21:00:01 +0000",
-  "fetched_on": "2026-07-06",
+  "updated_at": "Tue, 07 Jul 2026 20:00:02 +0000",
+  "fetched_on": "2026-07-07",
   "source": "ExchangeRate-API standard endpoint (BRL)",
   "base_currency": "BRL",
   "brl_rate": 1.0,
@@ -8,115 +8,115 @@
     {
       "code": "USD",
       "name": "Dólar Americano (USD)",
-      "base_rate": 0.19337364,
+      "base_rate": 0.19476439,
       "spread": 0.0321101,
-      "market_brl": 5.171336,
-      "rate": 5.337388,
-      "brl_per_unit": 5.337388
+      "market_brl": 5.134409,
+      "rate": 5.299275,
+      "brl_per_unit": 5.299275
     },
     {
       "code": "EUR",
       "name": "Euro (EUR)",
-      "base_rate": 0.16923943,
+      "base_rate": 0.17043474,
       "spread": 0.03414048,
-      "market_brl": 5.908789,
-      "rate": 6.110517,
-      "brl_per_unit": 6.110517
+      "market_brl": 5.867348,
+      "rate": 6.067662,
+      "brl_per_unit": 6.067662
     },
     {
       "code": "GBP",
       "name": "Libra Esterlina (GBP)",
-      "base_rate": 0.14488638,
+      "base_rate": 0.14565743,
       "spread": 0.03463,
-      "market_brl": 6.90196,
-      "rate": 7.140975,
-      "brl_per_unit": 7.140975
+      "market_brl": 6.865424,
+      "rate": 7.103174,
+      "brl_per_unit": 7.103174
     },
     {
       "code": "JPY",
       "name": "Iene Japonês (JPY)",
-      "base_rate": 31.3673998,
+      "base_rate": 31.55722097,
       "spread": 0.03463,
-      "market_brl": 0.03188,
-      "rate": 0.032984,
-      "brl_per_unit": 0.032984
+      "market_brl": 0.031688,
+      "rate": 0.032786,
+      "brl_per_unit": 0.032786
     },
     {
       "code": "CNY",
       "name": "Yuan Chinês (CNY)",
-      "base_rate": 1.3121,
+      "base_rate": 1.326,
       "spread": 0.03463,
-      "market_brl": 0.762137,
-      "rate": 0.78853,
-      "brl_per_unit": 0.78853
+      "market_brl": 0.754148,
+      "rate": 0.780264,
+      "brl_per_unit": 0.780264
     },
     {
       "code": "AUD",
       "name": "Dólar Australiano (AUD)",
-      "base_rate": 0.27886203,
+      "base_rate": 0.28073972,
       "spread": 0.03463,
-      "market_brl": 3.586003,
-      "rate": 3.710186,
-      "brl_per_unit": 3.710186
+      "market_brl": 3.562018,
+      "rate": 3.685371,
+      "brl_per_unit": 3.685371
     },
     {
       "code": "CAD",
       "name": "Dólar Canadense (CAD)",
-      "base_rate": 0.27493755,
+      "base_rate": 0.27684081,
       "spread": 0.03463,
-      "market_brl": 3.63719,
-      "rate": 3.763145,
-      "brl_per_unit": 3.763145
+      "market_brl": 3.612184,
+      "rate": 3.737274,
+      "brl_per_unit": 3.737274
     },
     {
       "code": "CHF",
       "name": "Franco Suíço (CHF)",
-      "base_rate": 0.155811,
+      "base_rate": 0.15721144,
       "spread": 0.03463,
-      "market_brl": 6.418032,
-      "rate": 6.640289,
-      "brl_per_unit": 6.640289
+      "market_brl": 6.36086,
+      "rate": 6.581137,
+      "brl_per_unit": 6.581137
     },
     {
       "code": "HKD",
       "name": "Dólar de Hong Kong (HKD)",
-      "base_rate": 1.51728688,
+      "base_rate": 1.52803886,
       "spread": 0.03463,
-      "market_brl": 0.659071,
-      "rate": 0.681895,
-      "brl_per_unit": 0.681895
+      "market_brl": 0.654434,
+      "rate": 0.677097,
+      "brl_per_unit": 0.677097
     },
     {
       "code": "SGD",
       "name": "Dólar de Singapura (SGD)",
-      "base_rate": 0.25003178,
+      "base_rate": 0.2517515,
       "spread": 0.03463,
-      "market_brl": 3.999492,
-      "rate": 4.137994,
-      "brl_per_unit": 4.137994
+      "market_brl": 3.972171,
+      "rate": 4.109727,
+      "brl_per_unit": 4.109727
     },
     {
       "code": "AED",
       "name": "Dirham Árabe (AED)",
-      "base_rate": 0.71016187,
+      "base_rate": 0.71527034,
       "spread": 0.03463,
-      "market_brl": 1.40813,
-      "rate": 1.456893,
-      "brl_per_unit": 1.456893
+      "market_brl": 1.398073,
+      "rate": 1.446488,
+      "brl_per_unit": 1.446488
     },
     {
       "code": "ZAR",
       "name": "Rand Sul-africano (ZAR)",
-      "base_rate": 3.13851808,
+      "base_rate": 3.15889324,
       "spread": 0.03463,
-      "market_brl": 0.318622,
-      "rate": 0.329656,
-      "brl_per_unit": 0.329656
+      "market_brl": 0.316567,
+      "rate": 0.327529,
+      "brl_per_unit": 0.327529
     }
   ],
   "error": null,
   "spread_applied": true,
-  "attempted_on": "2026-07-06",
-  "call_count_date": "2026-07-06",
+  "attempted_on": "2026-07-07",
+  "call_count_date": "2026-07-07",
   "daily_call_count": 1
 }
