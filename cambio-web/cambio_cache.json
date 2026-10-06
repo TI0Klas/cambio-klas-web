@@ -1,5 +1,5 @@
 {
-  "updated_at": "Tue, 06 Oct 2026 19:00:01 +0000",
+  "updated_at": "Tue, 06 Oct 2026 20:00:02 +0000",
   "fetched_on": "2026-10-06",
   "source": "ExchangeRate-API standard endpoint (BRL)",
   "base_currency": "BRL",
@@ -8,38 +8,38 @@
     {
       "code": "USD",
       "name": "Dólar Americano (USD)",
-      "base_rate": 0.20028206,
+      "base_rate": 0.20040801,
       "spread": 0.0321101,
-      "market_brl": 4.992958,
-      "rate": 5.153283,
-      "brl_per_unit": 5.153283
+      "market_brl": 4.989821,
+      "rate": 5.150044,
+      "brl_per_unit": 5.150044
     },
     {
       "code": "EUR",
       "name": "Euro (EUR)",
-      "base_rate": 0.17820391,
+      "base_rate": 0.1781761,
       "spread": 0.03414048,
-      "market_brl": 5.611549,
-      "rate": 5.80313,
-      "brl_per_unit": 5.80313
+      "market_brl": 5.612425,
+      "rate": 5.804036,
+      "brl_per_unit": 5.804036
     },
     {
       "code": "GBP",
       "name": "Libra Esterlina (GBP)",
-      "base_rate": 0.15150411,
+      "base_rate": 0.15140975,
       "spread": 0.03463,
-      "market_brl": 6.600481,
-      "rate": 6.829056,
-      "brl_per_unit": 6.829056
+      "market_brl": 6.604594,
+      "rate": 6.833312,
+      "brl_per_unit": 6.833312
     },
     {
       "code": "JPY",
       "name": "Iene Japonês (JPY)",
-      "base_rate": 31.64866071,
+      "base_rate": 31.6501342,
       "spread": 0.03463,
-      "market_brl": 0.031597,
-      "rate": 0.032691,
-      "brl_per_unit": 0.032691
+      "market_brl": 0.031595,
+      "rate": 0.03269,
+      "brl_per_unit": 0.03269
     },
     {
       "code": "CNY",
@@ -53,70 +53,71 @@
     {
       "code": "AUD",
       "name": "Dólar Australiano (AUD)",
-      "base_rate": 0.28788518,
+      "base_rate": 0.28760776,
       "spread": 0.03463,
-      "market_brl": 3.473607,
-      "rate": 3.593898,
-      "brl_per_unit": 3.593898
+      "market_brl": 3.476958,
+      "rate": 3.597365,
+      "brl_per_unit": 3.597365
     },
     {
       "code": "CAD",
       "name": "Dólar Canadense (CAD)",
-      "base_rate": 0.28581856,
+      "base_rate": 0.28602367,
       "spread": 0.03463,
-      "market_brl": 3.498723,
-      "rate": 3.619884,
-      "brl_per_unit": 3.619884
+      "market_brl": 3.496214,
+      "rate": 3.617288,
+      "brl_per_unit": 3.617288
     },
     {
       "code": "CHF",
       "name": "Franco Suíço (CHF)",
-      "base_rate": 0.16640569,
+      "base_rate": 0.16640229,
       "spread": 0.03463,
-      "market_brl": 6.00941,
-      "rate": 6.217516,
-      "brl_per_unit": 6.217516
+      "market_brl": 6.009533,
+      "rate": 6.217643,
+      "brl_per_unit": 6.217643
     },
     {
       "code": "HKD",
       "name": "Dólar de Hong Kong (HKD)",
-      "base_rate": 1.57054967,
+      "base_rate": 1.57051664,
       "spread": 0.03463,
-      "market_brl": 0.63672,
-      "rate": 0.658769,
-      "brl_per_unit": 0.658769
+      "market_brl": 0.636733,
+      "rate": 0.658783,
+      "brl_per_unit": 0.658783
     },
     {
       "code": "SGD",
       "name": "Dólar de Singapura (SGD)",
-      "base_rate": 0.25669013,
+      "base_rate": 0.25584979,
       "spread": 0.03463,
-      "market_brl": 3.895748,
-      "rate": 4.030658,
-      "brl_per_unit": 4.030658
+      "market_brl": 3.908543,
+      "rate": 4.043896,
+      "brl_per_unit": 4.043896
     },
     {
       "code": "AED",
       "name": "Dirham Árabe (AED)",
-      "base_rate": 0.73553341,
+      "base_rate": 0.7359938,
       "spread": 0.03463,
-      "market_brl": 1.359558,
-      "rate": 1.406639,
-      "brl_per_unit": 1.406639
+      "market_brl": 1.358707,
+      "rate": 1.405759,
+      "brl_per_unit": 1.405759
     },
     {
       "code": "ZAR",
       "name": "Rand Sul-africano (ZAR)",
-      "base_rate": 3.32784245,
+      "base_rate": 3.32688925,
       "spread": 0.03463,
-      "market_brl": 0.300495,
-      "rate": 0.310901,
-      "brl_per_unit": 0.310901
+      "market_brl": 0.300581,
+      "rate": 0.31099,
+      "brl_per_unit": 0.31099
     }
   ],
   "error": null,
   "spread_applied": true,
   "attempted_on": "2026-10-06",
+  "fetched_at": "2026-10-06T20:16:49+00:00",
   "call_count_date": "2026-10-06",
-  "daily_call_count": 1
+  "daily_call_count": 2
 }
