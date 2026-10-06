@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Câmbio Klas</title>
+<!-- Versão para iframe na intranet (SharePoint). A página principal continua sendo o index.html. -->
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --azul: #002b5f;
+    --azul-medio: #2a5f9e;
+    --texto-2: #4b5d75;
+    --texto-3: #6b7a8f;
+    --filete: #dde2ea;
+    --fundo-suave: #f3f2f2;
+  }
+
+  html, body { background: transparent; }
+
+  body {
+    font-family: "Avenir Next", "Avenir", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    color: var(--azul);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--filete);
+    border-top: 2px solid var(--azul);
+    border-radius: 2px;
+  }
+
+  /* Cabeçalho */
+  .head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px 11px;
+  }
+  .head img { width: 24px; height: 24px; flex-shrink: 0; }
+  .eyebrow {
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--texto-2);
+  }
+  .title {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--azul);
+  }
+
+  /* Tabela */
+  .table-head {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 16px;
+    border-top: 1px solid var(--filete);
+    border-bottom: 1px solid var(--filete);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--texto-3);
+  }
+
+  .currency-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 40px;
+    padding: 0 16px;
+    border-bottom: 1px solid #eef1f5;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.12s ease;
+  }
+  .currency-row:last-child { border-bottom: none; }
+  .currency-row:hover { background: #f7f8fa; }
+  .currency-row.selected { box-shadow: inset 2px 0 0 var(--azul); background: #f7f8fa; }
+
+  .currency-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+  .code {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--azul);
+    border: 1px solid rgba(0, 43, 95, 0.28);
+    border-radius: 2px;
+    padding: 2px 5px;
+    min-width: 36px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .currency-name {
+    font-size: 0.9rem;
+    color: var(--azul);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .currency-name strong { font-weight: 600; }
+  .currency-name span { color: var(--texto-3); }
+
+  .currency-rate {
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--azul);
+  }
+
+  .foot {
+    padding: 8px 16px;
+    border-top: 1px solid var(--filete);
+    background: var(--fundo-suave);
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: var(--texto-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Conversor */
+  .conv { padding: 12px 16px 14px; border-top: 1px solid var(--filete); }
+  .conv .eyebrow { margin-bottom: 8px; }
+
+  /* Seletor de moeda: abre para CIMA, por cima da tabela, porque o iframe corta o que passa da borda de baixo */
+  .picker { position: relative; }
+  .picker select { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+  .conv-select {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 36px;
+    padding: 0 32px 0 10px;
+    font: inherit;
+    font-size: 0.88rem;
+    color: var(--azul);
+    text-align: left;
+    background: #fff;
+    border: 1px solid #c9d1dc;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  .conv-select .chevron {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    transform: translateY(-50%) rotate(180deg);
+    transition: transform 275ms ease-in-out;
+  }
+  #picker-label { display: flex; align-items: center; gap: 9px; min-width: 0; }
+  .conv-select:focus-visible { outline: none; border-color: var(--azul); box-shadow: 0 0 0 1px var(--azul); }
+  .picker.open .conv-select { border-color: var(--azul); }
+  .picker.open .chevron { transform: translateY(-50%) rotate(0deg); }
+
+  .picker-list {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 4px);
+    z-index: 10;
+    height: 0;
+    overflow-y: hidden;
+    list-style: none;
+    background: #fff;
+    border: 1px solid var(--filete);
+    border-radius: 2px;
+    box-shadow: 0 -4px 16px rgba(0, 43, 95, 0.12);
+    visibility: hidden;
+    transition: height 275ms ease-in-out, visibility 0s linear 275ms;
+  }
+  .picker.open .picker-list { visibility: visible; transition: height 275ms ease-in-out, visibility 0s; }
+
+  .picker-list li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #eef1f5;
+    font-size: 0.86rem;
+    color: var(--azul);
+    cursor: pointer;
+    transition: background-color 0.1s;
+  }
+  .picker-list li:last-child { border-bottom: none; }
+  .picker-list li:hover, .picker-list li.focus { background: #f7f8fa; }
+  .picker-list li.active { box-shadow: inset 2px 0 0 var(--azul); font-weight: 600; }
+
+  .conv-body { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+
+  .conv-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid #c9d1dc;
+    border-radius: 2px;
+    background: #fff;
+  }
+  .conv-select:focus-visible,
+  .conv-group:focus-within { outline: none; border-color: var(--azul); box-shadow: 0 0 0 1px var(--azul); }
+
+  .conv-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; color: var(--texto-2); flex-shrink: 0; }
+
+  .conv-input {
+    width: 100%;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font: inherit;
+    font-size: 0.95rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--azul);
+  }
+
+  .conv-sep { color: var(--texto-3); font-weight: 600; flex-shrink: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .currency-row, .picker-list, .picker.open .picker-list, .conv-select .chevron { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="head">
+      <img alt="Klas" src="data:image/png;base64,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">
+      <div>
+        <span class="eyebrow">Cotação de venda</span>
+        <span class="title">Câmbio Klas</span>
+      </div>
+    </div>
+
+    <div class="table-head">
+      <span>Moeda</span>
+      <span>R$ por unidade</span>
+    </div>
+
+    <div id="rates-body"></div>
+
+    <div class="foot" id="footer-text">Carregando...</div>
+
+    <div class="conv">
+      <span class="eyebrow">Conversor</span>
+      <div class="picker" id="picker">
+        <select id="currency-select" tabindex="-1" aria-hidden="true"></select>
+        <ul class="picker-list" id="picker-list" role="listbox" aria-label="Moeda do conversor"></ul>
+        <button type="button" class="conv-select" id="picker-button" aria-haspopup="listbox" aria-expanded="false">
+          <span id="picker-label">Carregando...</span>
+          <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path fill="#002b5f" d="M7.41 7.84 12 12.42l4.59-4.58L18 9.25l-6 6-6-6z"/></svg>
+        </button>
+      </div>
+      <div class="conv-body">
+        <label class="conv-group">
+          <span class="conv-label">R$</span>
+          <input id="calc-brl" class="conv-input" type="text" inputmode="decimal" value="100,00" placeholder="0,00" aria-label="Valor em reais">
+        </label>
+        <span class="conv-sep">=</span>
+        <label class="conv-group">
+          <span class="conv-label" id="calc-code">USD</span>
+          <input id="calc-foreign" class="conv-input" type="text" inputmode="decimal" placeholder="0,00" aria-label="Valor na moeda estrangeira">
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Mesmo arquivo de dados da página principal. Fora do GitHub Pages (teste local), lê o de produção.
+    const PROD_CACHE_URL = "https://ti0klas.github.io/cambio-klas-web/cambio-web/cambio_cache.json";
+    const API_URL = location.hostname.endsWith("github.io") ? "./cambio_cache.json" : PROD_CACHE_URL;
+
+    const CURRENCY_META = {
+      USD: { bold: "Dólar",  rest: " Americano" },
+      EUR: { bold: "Euro",   rest: "" },
+      GBP: { bold: "Libra",  rest: " Esterlina" },
+      JPY: { bold: "Iene",   rest: " Japonês" },
+      CNY: { bold: "Yuan",   rest: " Chinês" },
+      AUD: { bold: "Dólar",  rest: " Australiano" },
+      CAD: { bold: "Dólar",  rest: " Canadense" },
+      CHF: { bold: "Franco", rest: " Suíço" },
+      HKD: { bold: "Dólar",  rest: " de Hong Kong" },
+      SGD: { bold: "Dólar",  rest: " de Singapura" },
+      AED: { bold: "Dirham", rest: " Árabe" },
+      ZAR: { bold: "Rand",   rest: " Sul-africano" },
+    };
+    const displayOrder  = ["USD", "EUR", "GBP", "AED", "ZAR"];
+    const currencyOrder = ["USD", "EUR", "GBP", "JPY", "CNY", "AUD", "CAD", "CHF", "HKD", "SGD", "AED", "ZAR"];
+    let currentPayload = null;
+
+    function formatRate(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return "--";
+      return `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    function formatTimestamp(value) {
+      if (!value) return "indisponível";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return String(value);
+      return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(d);
+    }
+
+    function buildRows() {
+      const body = document.getElementById("rates-body");
+      for (const code of displayOrder) {
+        const meta = CURRENCY_META[code] || { bold: code, rest: "" };
+        const row = document.createElement("div");
+        row.className = "currency-row";
+        row.id = `row-${code.toLowerCase()}`;
+        row.innerHTML = `
+          <div class="currency-info">
+            <span class="code">${code}</span>
+            <span class="currency-name"><strong>${meta.bold}</strong><span>${meta.rest}</span></span>
+          </div>
+          <span class="currency-rate" id="rate-${code.toLowerCase()}">--</span>`;
+        row.addEventListener("click", () => {
+          const sel = document.getElementById("currency-select");
+          if (sel && sel.options.length) { sel.value = code; sel.dispatchEvent(new Event("change")); }
+        });
+        body.appendChild(row);
+      }
+    }
+
+    function applyRates(payload) {
+      currentPayload = payload;
+      const rates = Array.isArray(payload?.rates) ? payload.rates : [];
+      const byCode = new Map(rates.map((r) => [String(r.code || "").toUpperCase(), r]));
+
+      for (const code of currencyOrder) {
+        const item = byCode.get(code) || {};
+        const node = document.getElementById(`rate-${code.toLowerCase()}`);
+        if (node) node.textContent = formatRate(item.rate);
+      }
+
+      const sel = document.getElementById("currency-select");
+      if (sel && !sel.options.length) {
+        for (const code of currencyOrder) {
+          const meta = CURRENCY_META[code] || {};
+          const opt = document.createElement("option");
+          opt.value = code;
+          opt.textContent = `${code} · ${meta.bold || code}${meta.rest || ""}`;
+          sel.appendChild(opt);
+        }
+        sel.value = currencyOrder[0];
+        sel.addEventListener("change", renderConverter);
+        buildPicker();
+      }
+
+      const footer = document.getElementById("footer-text");
+      footer.textContent = `Atualizado em ${formatTimestamp(payload?.updated_at)}`;
+      footer.append(document.createElement("br"), "Atualiza às 11:30 (seg-sex)");
+
+      renderConverter();
+    }
+
+    // Seletor animado (mesma mecânica do index.html: altura de 0 até a lista, 275 ms), abrindo para cima.
+    const picker = document.getElementById("picker");
+    const pickerList = document.getElementById("picker-list");
+    const pickerButton = document.getElementById("picker-button");
+    let focusIndex = -1;
+
+    function pickerItemHTML(code) {
+      const meta = CURRENCY_META[code] || { bold: code, rest: "" };
+      return `<span class="code">${code}</span><span>${meta.bold}${meta.rest}</span>`;
+    }
+
+    function buildPicker() {
+      pickerList.innerHTML = "";
+      for (const code of currencyOrder) {
+        const li = document.createElement("li");
+        li.setAttribute("role", "option");
+        li.dataset.code = code;
+        li.innerHTML = pickerItemHTML(code);
+        li.addEventListener("click", () => selectPicker(code));
+        pickerList.appendChild(li);
+      }
+    }
+
+    function openPicker() {
+      const items = [...pickerList.children];
+      const full = items.reduce((h, li) => h + (li.offsetHeight || 36), 0) + 2;
+      const room = picker.getBoundingClientRect().top - 8;
+      const maxH = Math.max(120, Math.min(full, 300, room));
+      pickerList.style.height = maxH + "px";
+      pickerList.style.overflowY = full > maxH ? "auto" : "hidden";
+      picker.classList.add("open");
+      pickerButton.setAttribute("aria-expanded", "true");
+      focusIndex = items.findIndex((li) => li.classList.contains("active"));
+      const active = items[focusIndex];
+      if (active) active.scrollIntoView({ block: "nearest" });
+    }
+
+    function closePicker() {
+      pickerList.style.height = "0px";
+      pickerList.style.overflowY = "hidden";
+      picker.classList.remove("open");
+      pickerButton.setAttribute("aria-expanded", "false");
+      for (const li of pickerList.children) li.classList.remove("focus");
+    }
+
+    function selectPicker(code) {
+      const sel = document.getElementById("currency-select");
+      if (sel) { sel.value = code; sel.dispatchEvent(new Event("change")); }
+      closePicker();
+      pickerButton.focus();
+    }
+
+    pickerButton.addEventListener("click", () => {
+      if (!pickerList.children.length) return;
+      picker.classList.contains("open") ? closePicker() : openPicker();
+    });
+
+    pickerButton.addEventListener("keydown", (e) => {
+      const items = [...pickerList.children];
+      if (!items.length) return;
+      const isOpen = picker.classList.contains("open");
+      if (e.key === "Escape" && isOpen) { e.preventDefault(); closePicker(); return; }
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault();
+        if (!isOpen) { openPicker(); return; }
+        focusIndex = Math.max(0, Math.min(items.length - 1, focusIndex + (e.key === "ArrowDown" ? 1 : -1)));
+        items.forEach((li, i) => li.classList.toggle("focus", i === focusIndex));
+        items[focusIndex].scrollIntoView({ block: "nearest" });
+      }
+      if ((e.key === "Enter" || e.key === " ") && isOpen && focusIndex >= 0) {
+        e.preventDefault();
+        selectPicker(items[focusIndex].dataset.code);
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest("#picker")) closePicker();
+    });
+
+    function renderConverter() {
+      const sel = document.getElementById("currency-select");
+      const code = String(sel?.value || currencyOrder[0]).toUpperCase();
+      document.getElementById("picker-label").innerHTML = pickerItemHTML(code);
+      for (const li of pickerList.children) {
+        const on = li.dataset.code === code;
+        li.classList.toggle("active", on);
+        li.setAttribute("aria-selected", on ? "true" : "false");
+      }
+      document.getElementById("calc-code").textContent = code;
+      for (const row of document.querySelectorAll(".currency-row")) row.classList.remove("selected");
+      const activeRow = document.getElementById(`row-${code.toLowerCase()}`);
+      if (activeRow) activeRow.classList.add("selected");
+      refreshCalc();
+    }
+
+    let calcLastEdited = "brl";
+
+    function parseBR(str) {
+      if (!str) return NaN;
+      const s = String(str).trim();
+      if (s.includes(".") && s.includes(",")) return parseFloat(s.replace(/\./g, "").replace(",", "."));
+      if (s.includes(",")) return parseFloat(s.replace(",", "."));
+      return parseFloat(s);
+    }
+
+    function formatBR(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return "";
+      return n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function getSelectedRate() {
+      if (!currentPayload) return null;
+      const rates = Array.isArray(currentPayload.rates) ? currentPayload.rates : [];
+      const byCode = new Map(rates.map((r) => [String(r.code || "").toUpperCase(), r]));
+      const sel = document.getElementById("currency-select");
+      const code = String(sel?.value || currencyOrder[0]).toUpperCase();
+      return byCode.get(code)?.brl_per_unit ?? null;
+    }
+
+    function refreshCalc() {
+      const brlInput = document.getElementById("calc-brl");
+      const foreignInput = document.getElementById("calc-foreign");
+      const rate = getSelectedRate();
+      if (!rate) return;
+      if (calcLastEdited === "brl") {
+        const val = parseBR(brlInput.value);
+        foreignInput.value = Number.isFinite(val) && val >= 0 ? formatBR(val / rate) : "";
+      } else {
+        const val = parseBR(foreignInput.value);
+        brlInput.value = Number.isFinite(val) && val >= 0 ? formatBR(val * rate) : "";
+      }
+    }
+
+    document.getElementById("calc-brl").addEventListener("input", () => { calcLastEdited = "brl"; refreshCalc(); });
+    document.getElementById("calc-foreign").addEventListener("input", () => { calcLastEdited = "foreign"; refreshCalc(); });
+    document.getElementById("calc-brl").addEventListener("blur", (e) => { const v = parseBR(e.target.value); if (Number.isFinite(v) && v >= 0) e.target.value = formatBR(v); });
+    document.getElementById("calc-foreign").addEventListener("blur", (e) => { const v = parseBR(e.target.value); if (Number.isFinite(v) && v >= 0) e.target.value = formatBR(v); });
+
+    buildRows();
+
+    async function carregarCambio() {
+      try {
+        const res = await fetch(API_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        applyRates(await res.json());
+      } catch (e) {
+        console.error(e);
+        document.getElementById("footer-text").textContent = "Cotação indisponível no momento. Tente recarregar a página.";
+      }
+    }
+
+    carregarCambio();
+  </script>
+</body>
+</html>
