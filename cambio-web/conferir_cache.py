@@ -1,7 +1,9 @@
 """
 Confere o cambio_cache.json recém-publicado contra a PTAX (BCB) e o mercado em tempo real (AwesomeAPI).
-Não bloqueia nada: só informa. Código de saída 0 = ok, 1 = alerta, 2 = falha ao consultar as fontes,
-3 = inconclusivo (nenhum teste de moeda pôde rodar).
+Não bloqueia nada: só informa. Código de saída 0 = ok, 1 = alerta, 2 = fonte fora sem nenhum teste de moeda
+(as duas fontes, ou a que sobrou não tinha dado), 3 = inconclusivo (fontes no ar e nenhum teste de moeda rodou).
+Cada fonte é consultada à parte, com nova tentativa em 429/5xx/rede: se uma cair, os testes rodam com a outra
+e a fonte que caiu sai como aviso.
 
 Testes por execução:
   1. Frescor      - a ExchangeRate-API atualizou há menos de LIMITE_IDADE_H horas
@@ -20,9 +22,11 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 from datetime import date, datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parent
@@ -38,6 +42,7 @@ LIMITE_REALTIME = 0.015   # com 1% foram 8 falsos em 80 dias (desvio do teste 3 
 LIMITE_CRUZADO = 0.005
 LIMITE_VAR_DIA = 0.02     # teste 5: movimento de um dia útil para o outro
 IDADE_MERCADO_MIN = 30.0  # minutos: print da AwesomeAPI mais velho que isso não serve de referência
+PAUSAS_S = (5, 15)        # novas tentativas em 429/5xx/rede; Retry-After do servidor vale até 30 s
 
 URL_AWESOME = "https://economia.awesomeapi.com.br/json/last/{pares}"
 URL_PTAX = (
@@ -48,8 +53,19 @@ URL_PTAX = (
 
 
 def _get_json(url: str):
-    with urlopen(Request(url, headers={"User-Agent": "cambio-web-conferencia/1.0"}), timeout=20) as r:
-        return json.loads(r.read().decode("utf-8"))
+    for tentativa in range(len(PAUSAS_S) + 1):
+        try:
+            with urlopen(Request(url, headers={"User-Agent": "cambio-web-conferencia/1.0"}), timeout=20) as r:
+                return json.loads(r.read().decode("utf-8"))
+        except (HTTPError, URLError, TimeoutError) as exc:
+            temporario = not isinstance(exc, HTTPError) or exc.code == 429 or exc.code >= 500
+            if not temporario or tentativa == len(PAUSAS_S):
+                raise
+            pausa = PAUSAS_S[tentativa]
+            espera = exc.headers.get("Retry-After", "") if isinstance(exc, HTTPError) else ""
+            if espera.isdigit():
+                pausa = min(int(espera), 30)
+            time.sleep(pausa)
 
 
 def _boletins(moeda: str, dia: date) -> list[dict]:
@@ -108,17 +124,35 @@ def main() -> int:
         return 2
     mercado = {r["code"]: r.get("market_brl") for r in cache.get("rates", [])}
 
+    fontes_fora: list[str] = []
+    aw_ok = ptax_ok = True
     try:
         pares = ",".join([f"{m}-BRL" for m in MOEDAS] + ["EUR-USD"])
         aw = _get_json(URL_AWESOME.format(pares=pares))
+    except Exception as exc:  # rede, HTTP, JSON
+        aw, aw_ok = {}, False
+        fontes_fora.append(f"AwesomeAPI (mercado em tempo real): {exc}")
+    try:
         ptax = {m: _ptax_hoje(m) for m in MOEDAS}
         ptax_ant = {m: _ptax_fechamento_anterior(m) for m in MOEDAS}
-    except Exception as exc:  # rede, HTTP, JSON
-        print(f"Falha ao consultar as fontes de conferência: {exc}")
+    except Exception as exc:
+        ptax = ptax_ant = dict.fromkeys(MOEDAS)
+        ptax_ok = False
+        fontes_fora.append(f"PTAX (BCB): {exc}")
+    for f in fontes_fora:
+        print(f"::warning::Fonte de conferência fora - {f}")
+    if len(fontes_fora) == 2:
+        print("Falha ao consultar as duas fontes de conferência:\n- " + "\n- ".join(fontes_fora))
         return 2
 
     linhas: list[str] = []
     alertas: list[str] = []
+    if fontes_fora:
+        linhas.append(f"**Conferência parcial.** Fonte fora: {fontes_fora[0]}")
+        if not aw_ok:
+            linhas.append("Sem o mercado em tempo real, os testes 3 e 4 não rodam e o teste 5 só olha o cache; "
+                          "a referência fica sendo a PTAX do dia (teste 2), que só existe depois do 1º boletim (~10h).")
+        linhas.append("")
 
     # Teste 1 - frescor
     atualizado = _parse_data(cache.get("updated_at"))
@@ -133,7 +167,7 @@ def main() -> int:
         linhas.append("Teste 1 (frescor): cache sem updated_at - ALERTA")
 
     # Teste 4 - par cruzado sem real
-    t4 = True
+    t4 = None  # None = não rodou; o diagnóstico "erro no real" só sai com o teste 4 ok
     if mercado.get("EUR") and mercado.get("USD") and "EURUSD" in aw:
         eurusd_cache = mercado["EUR"] / mercado["USD"]
         eurusd_aw = (float(aw["EURUSD"]["bid"]) + float(aw["EURUSD"]["ask"])) / 2
@@ -151,18 +185,21 @@ def main() -> int:
     testes_rodados = 0
     for m in MOEDAS:
         api = mercado.get(m)
-        if not api or f"{m}BRL" not in aw:
+        p, pa = ptax[m], ptax_ant[m]
+        if not api or (f"{m}BRL" not in aw and not p and not pa):
             linhas.append(f"| {m} | sem dado | | | | | | | | - |")
             continue
-        a = aw[f"{m}BRL"]
-        rt = (float(a["bid"]) + float(a["ask"])) / 2
-        idade_rt = _idade_mercado_min(a)
-        rt_serve = idade_rt is not None and idade_rt <= IDADE_MERCADO_MIN
-        if not rt_serve:
-            idade_txt = "sem data" if idade_rt is None else f"{round(idade_rt)} min"
-            alertas.append(f"{m}: print do mercado com {idade_txt} - teste 3 não pode ser aplicado")
-        p, pa = ptax[m], ptax_ant[m]
+        rt = rt_serve = None
+        if f"{m}BRL" in aw:
+            a = aw[f"{m}BRL"]
+            rt = (float(a["bid"]) + float(a["ask"])) / 2
+            idade_rt = _idade_mercado_min(a)
+            rt_serve = idade_rt is not None and idade_rt <= IDADE_MERCADO_MIN
+            if not rt_serve:
+                idade_txt = "sem data" if idade_rt is None else f"{round(idade_rt)} min"
+                alertas.append(f"{m}: print do mercado com {idade_txt} - teste 3 não pode ser aplicado")
         falhas: list[str] = []
+        testes_antes = testes_rodados
 
         if p:
             d2 = _dif(api, p["venda"])
@@ -173,18 +210,28 @@ def main() -> int:
         else:
             p_txt, d2_txt = "sem boletim", "-"
 
-        d3 = _dif(api, rt)
-        if rt_serve:
-            testes_rodados += 1
-            if abs(d3) > LIMITE_REALTIME:
-                falhas.append("3")
+        if rt is not None:
+            d3 = _dif(api, rt)
+            if rt_serve:
+                testes_rodados += 1
+                if abs(d3) > LIMITE_REALTIME:
+                    falhas.append("3")
+            rt_txt, d3_txt = f"{rt:.4f}", f"{d3:+.2%}"
+        else:
+            rt_txt = d3_txt = "-"
 
         if pa:
-            var_api, var_merc = _dif(api, pa["venda"]), _dif(rt, pa["venda"])
-            if (abs(var_api) > LIMITE_VAR_DIA or abs(var_merc) > LIMITE_VAR_DIA
-                    or abs(var_api - var_merc) > LIMITE_REALTIME):
+            var_api = _dif(api, pa["venda"])
+            va_txt, vm_txt = f"{var_api:+.2%}", "-"
+            if rt is not None:
+                var_merc = _dif(rt, pa["venda"])
+                vm_txt = f"{var_merc:+.2%}"
+                if (abs(var_api) > LIMITE_VAR_DIA or abs(var_merc) > LIMITE_VAR_DIA
+                        or abs(var_api - var_merc) > LIMITE_REALTIME):
+                    falhas.append("5")
+            elif abs(var_api) > LIMITE_VAR_DIA:  # sem mercado: só o movimento do cache
                 falhas.append("5")
-            pa_txt, va_txt, vm_txt = f"{pa['venda']:.4f}", f"{var_api:+.2%}", f"{var_merc:+.2%}"
+            pa_txt = f"{pa['venda']:.4f}"
         else:
             pa_txt = va_txt = vm_txt = "-"
 
@@ -193,8 +240,11 @@ def main() -> int:
             if t4 and ("2" in falhas or "3" in falhas):
                 brl_errado.append(m)
 
-        resultado = "ok" if not falhas else f"**ALERTA ({','.join(falhas)})**"
-        linhas.append(f"| {m} | {api:.4f} | {p_txt} | {d2_txt} | {rt:.4f} | {d3:+.2%} | {pa_txt} | {va_txt} | {vm_txt} | {resultado} |")
+        if falhas:
+            resultado = f"**ALERTA ({','.join(falhas)})**"
+        else:
+            resultado = "ok" if testes_rodados > testes_antes else "não conferido"
+        linhas.append(f"| {m} | {api:.4f} | {p_txt} | {d2_txt} | {rt_txt} | {d3_txt} | {pa_txt} | {va_txt} | {vm_txt} | {resultado} |")
 
     linhas.append("")
     if brl_errado:
@@ -205,8 +255,9 @@ def main() -> int:
     elif testes_rodados == 0:
         linhas.append("**INCONCLUSIVO: nenhuma moeda pôde ser conferida. Isto não é um 'ok'.**")
     else:
+        refs = " e ".join(r for r, ok in (("a PTAX", ptax_ok), ("o mercado", aw_ok)) if ok)
         linhas.append(f"Conferência ok em {testes_rodados} teste(s) de moeda: "
-                      f"o câmbio publicado bate com a PTAX e com o mercado.")
+                      f"o câmbio publicado bate com {refs}.")
 
     texto = "\n".join(linhas)
     print(texto)
@@ -216,7 +267,9 @@ def main() -> int:
             f.write(f"## Conferência do câmbio - {datetime.now(BRT):%d/%m/%Y %H:%M} BRT\n\n{texto}\n")
     if alertas:
         return 1
-    return 3 if testes_rodados == 0 else 0
+    if testes_rodados == 0:
+        return 2 if fontes_fora else 3  # nada conferido por causa da fonte fora = aviso, não vermelho
+    return 0
 
 
 if __name__ == "__main__":
