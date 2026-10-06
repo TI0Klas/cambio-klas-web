@@ -30,7 +30,7 @@ Se este diretório for publicado como repositório no GitHub Pages, a página pr
 
 O fluxo é este:
 
-1. O GitHub Actions atualiza `cambio_cache.json` de segunda a sexta às 11:30.
+1. O cron-job.org dispara o GitHub Actions de segunda a sexta às 9:30, 11:30 e 13:30, e ele atualiza `cambio_cache.json`.
 2. O `index.html` da raiz carrega a tabela diretamente.
 3. A página lê o cache publicado e mostra os valores sem depender da sua máquina ligada.
 
@@ -79,13 +79,17 @@ Os valores são decimais. Exemplo: `0.02` = 2%.
 
 O backend tenta atualizar automaticamente todos os dias às 11:30. Para isso funcionar, o processo precisa ficar em execução contínua. Se preferir, rode esse script pelo Agendador de Tarefas do Windows no login do usuário ou às 11:29.
 
-Importante: a API paga só é consultada uma vez por dia. O backend grava a tentativa do dia no cache local e não faz nova chamada externa até virar a data.
+Importante: o backend só faz nova chamada à API paga se a última consulta bem-sucedida tiver mais de 60 minutos (`CAMBIO_MIN_INTERVAL_MINUTES`). O limite diário continua em `CAMBIO_DAILY_LIMIT`.
 
 ## GitHub Actions
 
-Para atualizar mesmo com a máquina desligada, existe um workflow em `.github/workflows/update-cambio.yml`.
+Para atualizar mesmo com a máquina desligada, existe um workflow em `.github/workflows/update-cambio.yml`, na raiz do repositório. O arquivo `cambio-web/.github/workflows/update-cambio.yml` é uma cópia antiga que o GitHub ignora: não edite essa.
 
-Ele roda de segunda a sexta às 11:30 no horário de Brasília, o que equivale a `14:30 UTC`.
+Ele não tem mais `schedule` próprio: o agendamento do GitHub atrasava a execução em horas. Quem dispara é o cron-job.org, às 9:30, 11:30 e 13:30 (horário de Brasília, seg-sex), chamando o `workflow_dispatch` pela API do GitHub.
+
+Cada execução consulta a API, grava uma linha no `historico.csv` e roda o `conferir_cache.py`, que compara o câmbio publicado com a PTAX do BCB e com o mercado em tempo real. A conferência não bloqueia a atualização: se der alerta, ou se nenhum teste puder rodar, a execução fica vermelha no GitHub e o resumo mostra a tabela por moeda. Se a PTAX ou a AwesomeAPI estiverem fora do ar, a execução fica verde com um aviso de que o câmbio foi publicado sem conferência.
+
+Uma nova consulta só é feita se a última bem-sucedida tiver mais de 60 minutos (`CAMBIO_MIN_INTERVAL_MINUTES`), para que um disparo duplicado não gaste chamada nem duplique linha. O `force` do disparo manual ignora esse intervalo.
 
 Crie estes segredos no repositório:
 

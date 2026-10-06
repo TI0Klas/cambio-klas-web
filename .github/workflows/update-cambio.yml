@@ -1,18 +1,22 @@
 name: Update Cambio Cache
 
+# Disparado pelo cron-job.org às 9:30, 11:30 e 13:30 BRT (seg-sex) via workflow_dispatch.
+# O schedule do GitHub foi retirado: ele atrasava a execução em ~3h39 (mediana de 77 dias).
 on:
-  schedule:
-    - cron: '30 14 * * 1-5'  # 11:30 BRT - primeira tentativa
-    - cron: '35 14 * * 1-5'  # 11:35 BRT - segunda tentativa (retenta se a primeira falhou)
   workflow_dispatch:
     inputs:
       force:
-        description: 'Forçar atualização mesmo que já tenha rodado hoje'
+        description: 'Forçar atualização mesmo que tenha consultado a API há menos de 60 min'
         type: boolean
         default: false
 
 permissions:
   contents: write
+
+# Dois disparos ao mesmo tempo não disputam o push
+concurrency:
+  group: update-cambio
+  cancel-in-progress: false
 
 jobs:
   update-cache:
@@ -39,6 +43,18 @@ jobs:
       - name: Append to historico.csv
         run: python append_historico.py
 
+      # Só informa: o cache publicado não é bloqueado
+      # Saída: 0 = ok, 1 = alerta, 2 = fonte de conferência fora do ar, 3 = inconclusivo
+      - name: Conferir com PTAX e mercado
+        id: conferencia
+        continue-on-error: true
+        run: |
+          set +e
+          python conferir_cache.py
+          rc=$?
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          exit $rc
+
       - name: Commit updated files
         run: |
           git config user.name "github-actions[bot]"
@@ -60,3 +76,31 @@ jobs:
           else
             echo "No changes to commit."
           fi
+
+      # E-mail de alerta: a definir (caixa SMTP). Quando decidir, criar os segredos
+      # MAIL_SERVER, MAIL_USERNAME, MAIL_PASSWORD e MAIL_TO e descomentar.
+      # - name: Enviar alerta por e-mail
+      #   if: steps.conferencia.outputs.rc == '1' || steps.conferencia.outputs.rc == '3'
+      #   uses: dawidd6/action-send-mail@v3
+      #   with:
+      #     server_address: ${{ secrets.MAIL_SERVER }}
+      #     server_port: 587
+      #     username: ${{ secrets.MAIL_USERNAME }}
+      #     password: ${{ secrets.MAIL_PASSWORD }}
+      #     subject: "ALERTA câmbio Klas: cotação não bate com a PTAX"
+      #     to: ${{ secrets.MAIL_TO }}
+      #     from: ${{ secrets.MAIL_USERNAME }}
+      #     body: "A conferência do câmbio deu alerta. Detalhes: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      # Execução fica vermelha no GitHub (e o GitHub notifica quem disparou) quando há alerta
+      # ou quando nenhum teste pôde rodar
+      - name: Sinalizar alerta
+        if: steps.conferencia.outputs.rc == '1' || steps.conferencia.outputs.rc == '3'
+        run: |
+          echo "::error::Conferência do câmbio deu alerta. Ver o resumo da execução."
+          exit 1
+
+      # Fonte de referência indisponível: não é erro do câmbio, não derruba a execução
+      - name: Avisar que a conferência não rodou
+        if: steps.conferencia.outputs.rc == '2'
+        run: echo "::warning::Fonte de conferência indisponível. O câmbio foi publicado SEM conferir."

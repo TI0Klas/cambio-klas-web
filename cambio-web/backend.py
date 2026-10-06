@@ -28,6 +28,8 @@ BASE_CURRENCY = os.getenv("CAMBIO_BASE_CURRENCY", "BRL").strip().upper() or "BRL
 UPDATE_HOUR_2 = int(os.getenv("CAMBIO_UPDATE_HOUR_2", "15"))
 UPDATE_MINUTE_2 = int(os.getenv("CAMBIO_UPDATE_MINUTE_2", "0"))
 DAILY_API_LIMIT = int(os.getenv("CAMBIO_DAILY_LIMIT", "100"))
+# Intervalo mínimo entre consultas bem-sucedidas (protege contra disparo duplicado)
+MIN_INTERVAL_MINUTES = int(os.getenv("CAMBIO_MIN_INTERVAL_MINUTES", "60"))
 
 CURRENCIES = ["USD", "EUR", "GBP", "JPY", "CNY", "AUD", "CAD", "CHF", "HKD", "SGD", "AED", "ZAR"]
 DEFAULT_LABELS = {
@@ -300,8 +302,16 @@ def refresh_cache(force: bool = False) -> dict[str, Any]:
     cached = _load_cache()
     today = _today_key()
 
-    # Already succeeded today — skip
-    already_ok = cached.get("attempted_on") == today and not cached.get("error")
+    # Already succeeded less than MIN_INTERVAL_MINUTES ago — skip
+    already_ok = False
+    if cached.get("fetched_at") and not cached.get("error"):
+        try:
+            last = datetime.fromisoformat(cached["fetched_at"])
+            if last.tzinfo is None:
+                last = last.astimezone()
+            already_ok = datetime.now().astimezone() - last < timedelta(minutes=MIN_INTERVAL_MINUTES)
+        except (TypeError, ValueError):
+            already_ok = False
     if not force and already_ok:
         return cached
 
@@ -328,6 +338,7 @@ def refresh_cache(force: bool = False) -> dict[str, Any]:
         return cached
 
     payload["attempted_on"] = today
+    payload["fetched_at"] = _now_iso()
     payload["call_count_date"] = today
     payload["daily_call_count"] = daily_calls + 1
     _save_cache(payload)
