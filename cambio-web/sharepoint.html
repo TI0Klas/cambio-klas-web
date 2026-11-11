@@ -8,28 +8,30 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  /* Paleta do tema padrão do SharePoint (Fluent): combina com os Links rápidos da home */
   :root {
-    --azul: #002b5f;
-    --azul-medio: #2a5f9e;
-    --texto-2: #4b5d75;
-    --texto-3: #6b7a8f;
-    --filete: #dde2ea;
-    --fundo-suave: #f3f2f2;
+    --azul: #0078d4;        /* themePrimary: bordas, seleção, foco */
+    --texto: #323130;       /* neutralPrimary */
+    --texto-2: #605e5c;     /* neutralSecondary */
+    --texto-3: #605e5c;
+    --filete: #edebe9;      /* neutralLighter */
+    --borda-campo: #8a8886; /* borda dos campos do Fluent */
+    --hover: #f3f2f1;       /* neutralLighter (hover) */
+    --fundo-suave: #faf9f8; /* neutralLighterAlt */
   }
 
   html, body { background: transparent; }
 
   body {
-    font-family: "Avenir Next", "Avenir", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-    color: var(--azul);
+    font-family: "Segoe UI Web (West European)", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+    color: var(--texto);
     -webkit-font-smoothing: antialiased;
   }
 
   .card {
     background: #fff;
-    border: 1px solid var(--filete);
-    border-top: 2px solid var(--azul);
-    border-radius: 2px;
+    border: 1px solid var(--azul);
+    border-radius: 4px;
   }
 
   /* Cabeçalho */
@@ -51,9 +53,9 @@
   .title {
     display: block;
     font-size: 1.05rem;
-    font-weight: 800;
+    font-weight: 600;
     line-height: 1.2;
-    color: var(--azul);
+    color: var(--texto);
   }
 
   /* Tabela */
@@ -83,8 +85,8 @@
     transition: background-color 0.12s ease;
   }
   .currency-row:last-child { border-bottom: none; }
-  .currency-row:hover { background: #f7f8fa; }
-  .currency-row.selected { box-shadow: inset 2px 0 0 var(--azul); background: #f7f8fa; }
+  .currency-row:hover { background: var(--hover); }
+  .currency-row.selected { box-shadow: inset 2px 0 0 var(--azul); background: var(--hover); }
 
   .currency-info { display: flex; align-items: center; gap: 10px; min-width: 0; }
 
@@ -93,7 +95,7 @@
     font-weight: 700;
     letter-spacing: 0.06em;
     color: var(--azul);
-    border: 1px solid rgba(0, 43, 95, 0.28);
+    border: 1px solid rgba(0, 120, 212, 0.4);
     border-radius: 2px;
     padding: 2px 5px;
     min-width: 36px;
@@ -103,7 +105,7 @@
 
   .currency-name {
     font-size: 0.9rem;
-    color: var(--azul);
+    color: var(--texto);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -113,10 +115,10 @@
 
   .currency-rate {
     font-size: 0.95rem;
-    font-weight: 700;
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
-    color: var(--azul);
+    color: var(--texto);
   }
 
   .foot {
@@ -146,10 +148,10 @@
     padding: 0 32px 0 10px;
     font: inherit;
     font-size: 0.88rem;
-    color: var(--azul);
+    color: var(--texto);
     text-align: left;
     background: #fff;
-    border: 1px solid #c9d1dc;
+    border: 1px solid var(--borda-campo);
     border-radius: 2px;
     cursor: pointer;
   }
@@ -179,7 +181,7 @@
     background: #fff;
     border: 1px solid var(--filete);
     border-radius: 2px;
-    box-shadow: 0 -4px 16px rgba(0, 43, 95, 0.12);
+    box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.13);
     visibility: hidden;
     transition: height 275ms ease-in-out, visibility 0s linear 275ms;
   }
@@ -192,12 +194,12 @@
     padding: 8px 12px;
     border-bottom: 1px solid #eef1f5;
     font-size: 0.86rem;
-    color: var(--azul);
+    color: var(--texto);
     cursor: pointer;
     transition: background-color 0.1s;
   }
   .picker-list li:last-child { border-bottom: none; }
-  .picker-list li:hover, .picker-list li.focus { background: #f7f8fa; }
+  .picker-list li:hover, .picker-list li.focus { background: var(--hover); }
   .picker-list li.active { box-shadow: inset 2px 0 0 var(--azul); font-weight: 600; }
 
   .conv-body { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
@@ -210,7 +212,7 @@
     min-width: 0;
     height: 38px;
     padding: 0 10px;
-    border: 1px solid #c9d1dc;
+    border: 1px solid var(--borda-campo);
     border-radius: 2px;
     background: #fff;
   }
@@ -228,7 +230,7 @@
     font: inherit;
     font-size: 0.95rem;
     font-variant-numeric: tabular-nums;
-    color: var(--azul);
+    color: var(--texto);
   }
 
   .conv-sep { color: var(--texto-3); font-weight: 600; flex-shrink: 0; }
@@ -264,7 +266,7 @@
         <ul class="picker-list" id="picker-list" role="listbox" aria-label="Moeda do conversor"></ul>
         <button type="button" class="conv-select" id="picker-button" aria-haspopup="listbox" aria-expanded="false">
           <span id="picker-label">Carregando...</span>
-          <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path fill="#002b5f" d="M7.41 7.84 12 12.42l4.59-4.58L18 9.25l-6 6-6-6z"/></svg>
+          <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path fill="#605e5c"d="M7.41 7.84 12 12.42l4.59-4.58L18 9.25l-6 6-6-6z"/></svg>
         </button>
       </div>
       <div class="conv-body">
